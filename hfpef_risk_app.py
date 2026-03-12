@@ -64,10 +64,20 @@ CHINESE_FONT_CANDIDATES = [
     'Microsoft YaHei',
     'SimHei',
     'Noto Sans CJK SC',
+    'Noto Sans CJK JP',
+    'Noto Sans SC',
     'Source Han Sans SC',
     'PingFang SC',
     'WenQuanYi Zen Hei',
     'Arial Unicode MS',
+]
+CHINESE_FONT_SEARCH_DIRS = [
+    PROJECT_DIR / 'fonts',
+    Path('/usr/share/fonts/opentype/noto'),
+    Path('/usr/share/fonts/truetype/noto'),
+    Path('/usr/share/fonts/truetype/wqy'),
+    Path('/usr/local/share/fonts'),
+    Path('/home/appuser/.fonts'),
 ]
 
 CURRENT_SAMPLE_SECTION_TITLES = [
@@ -81,7 +91,25 @@ BATTERY_STREAMLIT_COMMAND = (
 )
 
 
+def register_chinese_font_candidates() -> None:
+    seen_paths: set[str] = set()
+    for font_dir in CHINESE_FONT_SEARCH_DIRS:
+        if not Path(font_dir).exists():
+            continue
+        for pattern in ('*.ttf', '*.ttc', '*.otf'):
+            for font_path in Path(font_dir).rglob(pattern):
+                font_path_str = str(font_path.resolve())
+                if font_path_str in seen_paths:
+                    continue
+                try:
+                    font_manager.fontManager.addfont(font_path_str)
+                    seen_paths.add(font_path_str)
+                except Exception:
+                    continue
+
+
 def configure_matplotlib_for_chinese() -> str:
+    register_chinese_font_candidates()
     available_fonts = {font.name for font in font_manager.fontManager.ttflist}
     selected_font = 'DejaVu Sans'
     for candidate in CHINESE_FONT_CANDIDATES:
