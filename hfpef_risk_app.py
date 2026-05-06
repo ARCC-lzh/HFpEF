@@ -357,6 +357,7 @@ def main() -> None:
         layout='wide',
     )
     st.title('HFpEF 风险预测平台（Random Forest）')
+    st.markdown('**纪芳杰**  |  天津医科大学')
     st.caption('基于回顾性数据库训练的随机森林模型，输入 10 个关键特征，输出 Event 风险概率、分层和实验图谱。')
 
     context = load_context()
