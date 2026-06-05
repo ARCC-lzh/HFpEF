@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
@@ -25,6 +25,7 @@ PROJECT_DIR = Path(__file__).resolve().parent
 FEATURE_LABELS: dict[str, str] = {
     'NT_proBNP': 'NT-proBNP',
     'EF': '射血分数',
+    'E_e': 'E/e′',
     'Age': '年龄',
     'AFc': '房颤史',
     'HGB': '血红蛋白',
@@ -38,6 +39,7 @@ FEATURE_LABELS: dict[str, str] = {
 FEATURE_UNITS: dict[str, str] = {
     'NT_proBNP': 'pg/mL',
     'EF': '%',
+    'E_e': '',
     'Age': '岁',
     'AFc': '0/1',
     'HGB': 'g/L',
@@ -87,6 +89,7 @@ CURRENT_SAMPLE_SECTION_TITLES = [
     '全局特征重要性',
 ]
 BATTERY_STREAMLIT_COMMAND = (
+    'cd D:\\Code\\HFpEF_v2\\web\n'
     '& "C:\\Users\\ARCC\\.conda\\envs\\battery\\python.exe" -m streamlit run hfpef_risk_app.py'
 )
 
@@ -209,7 +212,7 @@ def render_input_form(context: dict[str, Any]) -> tuple[bool, dict[str, float]]:
     user_input: dict[str, float] = {}
 
     st.subheader('患者信息录入')
-    st.caption('当前默认值已预填为一个高风险示例，方便你直接演示。分类变量使用下拉框，连续变量使用数值输入。')
+    st.caption('当前默认值来自本次回顾性训练集的中位数或众数。分类变量使用下拉框，连续变量使用数值输入。')
 
     with st.form('predict_form', clear_on_submit=False):
         columns = st.columns(2)
@@ -358,7 +361,7 @@ def main() -> None:
     )
     st.title('HFpEF 风险预测平台（Random Forest）')
     st.markdown('**纪芳杰**  |  天津医科大学')
-    st.caption('基于回顾性数据库训练的随机森林模型，输入 10 个关键特征，输出 Event 风险概率、分层和实验图谱。')
+    st.caption('基于重新纳入 E/e′ 的回顾性数据库训练，输入 10 个关键特征，输出 Event 风险概率、固定 0.5 阈值判断、分层和解释图谱。')
 
     context = load_context()
     default_prediction = context['default_prediction']
