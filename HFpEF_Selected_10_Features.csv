@@ -1,0 +1,11 @@
+﻿feature,boruta_confirmed,boruta_tentative,boruta_rank,rf_importance,selection_source,E_e_candidate_available,E_e_selected
+NT_proBNP,True,False,1,0.42989087036087315,confirmed,True,True
+EF,True,False,1,0.14199737472518956,confirmed,True,True
+E_e,True,False,1,0.05019096061240746,confirmed,True,True
+Age,True,False,1,0.023745193554470117,confirmed,True,True
+ALB,True,False,1,0.016400978933246404,confirmed,True,True
+FT3,True,False,1,0.016166060126833894,confirmed,True,True
+CR,True,False,1,0.015731162480873435,confirmed,True,True
+HGB,True,False,1,0.015479890887974983,confirmed,True,True
+AFc,True,False,1,0.015478784202418333,confirmed,True,True
+FIB,True,False,1,0.013985902685744402,confirmed,True,True

@@ -1,0 +1,31 @@
+{
+  "best_model_name": "Random Forest",
+  "selected_features": [
+    "NT_proBNP",
+    "EF",
+    "E_e",
+    "Age",
+    "ALB",
+    "FT3",
+    "CR",
+    "HGB",
+    "AFc",
+    "FIB"
+  ],
+  "E_e_candidate_available": true,
+  "E_e_selected": true,
+  "retrospective_rows": 24551,
+  "event_distribution": {
+    "0": 18492,
+    "1": 6059
+  },
+  "outputs": {
+    "models": "D:\\Code\\HFpEF_v2\\models",
+    "retro": "D:\\Code\\HFpEF_v2\\outputs\\retrospective",
+    "figures": "D:\\Code\\HFpEF_v2\\figures\\retrospective",
+    "feature_figures": "D:\\Code\\HFpEF_v2\\figures\\retrospective\\feature_selection",
+    "model_figures": "D:\\Code\\HFpEF_v2\\figures\\retrospective\\model_evaluation",
+    "advanced_figures": "D:\\Code\\HFpEF_v2\\figures\\retrospective\\advanced_analysis",
+    "docs": "D:\\Code\\HFpEF_v2\\docs"
+  }
+}
