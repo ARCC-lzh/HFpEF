@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 import json
@@ -30,6 +30,7 @@ class RuntimeAssets:
     default_input_values: dict[str, float]
     reference_probabilities: np.ndarray
     lime_background_df: pd.DataFrame
+    threshold: float
 
 
 @dataclass(frozen=True)
@@ -52,7 +53,6 @@ def load_runtime_assets(project_dir: str | Path) -> RuntimeAssets:
         pass
 
     runtime_bundle = json.loads((base_dir / RUNTIME_BUNDLE_RELATIVE_PATH).read_text(encoding='utf-8'))
-    lime_background_df = pd.DataFrame(runtime_bundle['lime_background'])
 
     model_features = list(getattr(model, 'feature_names_in_', []))
     scaler_features = list(getattr(scaler, 'feature_names_in_', []))
@@ -62,6 +62,8 @@ def load_runtime_assets(project_dir: str | Path) -> RuntimeAssets:
         raise ValueError('标准化器缺少 feature_names_in_，无法保证列映射。')
     if runtime_bundle.get('model_features') != model_features:
         raise ValueError('运行时数据包中的特征顺序与模型不一致。')
+    lime_background = runtime_bundle.get('lime_background') or [runtime_bundle['default_input_values']]
+    lime_background_df = pd.DataFrame(lime_background)
     lime_background_df = lime_background_df.loc[:, model_features].apply(pd.to_numeric, errors='coerce').astype(float)
 
     return RuntimeAssets(
@@ -70,11 +72,38 @@ def load_runtime_assets(project_dir: str | Path) -> RuntimeAssets:
         scaler=scaler,
         model_features=model_features,
         scaler_features=scaler_features,
-        feature_specs=runtime_bundle['feature_specs'],
+        feature_specs=_normalize_runtime_feature_specs(runtime_bundle['feature_specs']),
         default_input_values={feature: float(value) for feature, value in runtime_bundle['default_input_values'].items()},
         reference_probabilities=np.asarray(runtime_bundle['reference_probabilities'], dtype=float),
         lime_background_df=lime_background_df,
+        threshold=float(runtime_bundle.get('threshold', 0.5)),
     )
+
+
+def _normalize_runtime_feature_specs(
+    raw_specs: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    specs: dict[str, dict[str, Any]] = {}
+    for feature, spec in raw_specs.items():
+        data_min = float(spec.get('data_min', spec.get('min', 0.0)))
+        data_max = float(spec.get('data_max', spec.get('max', data_min)))
+        slider_min = float(spec.get('slider_min', data_min))
+        slider_max = float(spec.get('slider_max', data_max))
+        default = float(spec.get('default', spec.get('median', data_min)))
+        if slider_min > slider_max:
+            slider_min, slider_max = data_min, data_max
+        specs[feature] = {
+            **spec,
+            'data_min': data_min,
+            'data_max': data_max,
+            'slider_min': slider_min,
+            'slider_max': slider_max,
+            'default': default,
+            'step': float(spec.get('step', max((slider_max - slider_min) / 200.0, 0.01))),
+            'is_categorical': bool(spec.get('is_categorical', False)),
+            'options': spec.get('options'),
+        }
+    return specs
 
 
 def get_explainer_runtime_status() -> dict[str, Any]:
@@ -468,10 +497,10 @@ def predict_with_risk_stratification(
 ) -> dict[str, Any]:
     scaled_input = scale_selected_features(raw_input, scaler=scaler, model_features=model_features)
     probability = float(model.predict_proba(scaled_input)[0, 1])
-    prediction = int(model.predict(scaled_input)[0])
+    threshold = 0.5
     return {
         'probability': probability,
-        'prediction': prediction,
+        'prediction': int(probability >= threshold),
         'risk_level': classify_risk(probability, cutoffs),
         'scaled_input': scaled_input,
         'raw_input': {feature: float(raw_input[feature]) for feature in model_features},
